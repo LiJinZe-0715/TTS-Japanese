@@ -1,0 +1,109 @@
+plugins { id 'com.android.application' }
+
+// Release signing comes from local.properties (not in git) or the environment:
+//   VOICEVOX_STORE_FILE, VOICEVOX_STORE_PASSWORD, VOICEVOX_KEY_ALIAS, VOICEVOX_KEY_PASSWORD
+// Without them the build falls back to the committed debug key, which is only acceptable for
+// sideloading onto your own device — see the warning in README.md.
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) localPropertiesFile.withInputStream { localProperties.load(it) }
+def signingValue = { String key -> localProperties.getProperty(key) ?: System.getenv(key) }
+
+android {
+    namespace 'app.voicevox.tts'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'app.voicevox.tts'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+        // The prebuilt VOICEVOX core and onnxruntime ship arm64 only.
+        ndk { abiFilters 'arm64-v8a' }
+        // libvoicevox_core.so links against libc++_shared.so; asking for the shared
+        // STL is what makes AGP package it into the APK.
+        externalNativeBuild { cmake { arguments '-DANDROID_STL=c++_shared' } }
+    }
+
+    externalNativeBuild { cmake { path 'src/main/cpp/CMakeLists.txt'; version '3.31.6' } }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Keep the .so files extracted on install: the core dlopen()s onnxruntime by
+    // absolute path out of nativeLibraryDir, which only exists in legacy packaging.
+    packaging { jniLibs { useLegacyPackaging = true } }
+
+    // src/main/assets ships 0.vvm and the dictionary (~80 MB), so the engine works offline the
+    // moment it is installed. Every other voice model is downloaded on demand by FileVoicePackStore.
+    // Setting `assets.srcDirs = []` here would drop them and cut the APK to ~7 MB, at the cost
+    // of requiring a download before the engine can speak at all.
+
+    signingConfigs {
+        // Personal sideload build: reuse the debug key so release and debug share a
+        // signature and one can replace the other without uninstalling.
+        //
+        // The password is the well-known AOSP debug one and this file is committed, which is
+        // fine only because the APK is never published. See the warning in README.md before
+        // distributing it: a copy of this keystore can produce an update Android treats as
+        // signed by the same developer.
+        release {
+            def store = signingValue('VOICEVOX_STORE_FILE')
+            if (store) {
+                storeFile file(store)
+                storePassword signingValue('VOICEVOX_STORE_PASSWORD')
+                keyAlias signingValue('VOICEVOX_KEY_ALIAS')
+                keyPassword signingValue('VOICEVOX_KEY_PASSWORD')
+            } else {
+                logger.warn('VOICEVOX_STORE_FILE not set: signing release with app/debug.keystore')
+                storeFile file('debug.keystore'); storePassword 'android'; keyAlias 'androiddebugkey'; keyPassword 'android'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    // The presenter lives above Android: its tests run on a plain JVM and never touch a stub
+    // method, but returning defaults beats a "not mocked" crash if one ever does.
+    testOptions {
+        unitTests.returnDefaultValues = true
+        // JUnit 4 stopped at 4.13.2 in 2021; the project is on the Jupiter line instead.
+        unitTests.all { it.useJUnitPlatform() }
+    }
+}
+
+// The APK is what gets sideloaded, so it is named after the product rather than after the
+// Gradle task that produced it.
+//
+// AGP 9 removed the old `applicationVariants { outputs.all { outputFileName = ... } }` block;
+// this is its replacement. Setting the name here, before packaging, matters: renaming the file
+// afterwards would leave the declared task output missing and make packageRelease re-run on
+// every single build.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def suffix = variant.buildType == 'release' ? '' : "_${variant.buildType}"
+        variant.outputs.each { output ->
+            output.outputFileName.set("VoiceVox_TTS${suffix}.apk")
+        }
+    }
+}
+
+dependencies {
+    // This module is the outer ring (infrastructure + presentation). The use cases come in
+    // through :application, which carries the :domain model along.
+    implementation project(':application')
+
+    testImplementation testFixtures(project(':application'))
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach { options.compilerArgs << '-Xlint:deprecation' }

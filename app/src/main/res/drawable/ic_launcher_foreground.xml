@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon foreground: a speech bubble with a four-bar waveform inside.
+     Two ideas in one silhouette — "it talks" from the bubble, "it synthesises" from the bars.
+
+     Every point stays within radius 36 of the centre (54,54), which is the circle mask every
+     launcher applies. A wider bubble would have its corners cut off on a Pixel-style round
+     mask, so the shape is deliberately taller than it is wide, and the tail is wide enough
+     to still read at 24dp. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Bubble: 26..82 × 34..72, corner radius 12, tail dropping to (42,82). -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M38,34 H70 A12,12 0 0 1 82,46 V60 A12,12 0 0 1 70,72 H59 L42,82 L46,72 H38 A12,12 0 0 1 26,60 V46 A12,12 0 0 1 38,34 Z" />
+
+    <!-- Waveform. Round-capped strokes, so the bars need no corner maths. -->
+    <path
+        android:pathData="M36,48 L36,58"
+        android:strokeColor="#FF4B57E0"
+        android:strokeWidth="8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M48,42 L48,64"
+        android:strokeColor="#FF4B57E0"
+        android:strokeWidth="8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M60,44 L60,62"
+        android:strokeColor="#FF4B57E0"
+        android:strokeWidth="8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M72,47 L72,59"
+        android:strokeColor="#FF4B57E0"
+        android:strokeWidth="8"
+        android:strokeLineCap="round" />
+</vector>

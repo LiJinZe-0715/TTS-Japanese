@@ -1,0 +1,9 @@
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+rootProject.name = 'TTS-Japanese'
+
+// Dependencies point one way: app -> application -> domain. The two inner modules are plain
+// Java libraries, so the compiler — not a convention — keeps android.* out of them.
+include ':domain'
+include ':application'
+include ':app'

@@ -1,0 +1,19 @@
+build/
+.cache/
+.gradle/
+app/.cxx/
+local.properties
+.idea/
+*.iml
+
+# A real release key never belongs in the repository (see README).
+*.jks
+
+# Binaries and voice data: ~102 MB, restored by `node scripts/fetch-assets.mjs`.
+# Run that once after cloning, before the first build.
+app/src/main/jniLibs/
+app/src/main/assets/vvm/
+app/src/main/assets/open_jtalk_dict.zip
+
+# Copied here by build-apk.cmd; the original stays under app/build/outputs/apk/release/.
+/VoiceVox_TTS.apk

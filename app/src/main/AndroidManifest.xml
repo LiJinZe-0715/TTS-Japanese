@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The dictionary and the bundled model (0.vvm) are packed into the APK and unpacked to
+         filesDir on first launch, so the engine speaks Japanese offline right after install.
+         INTERNET is only needed for the 24 optional voice packs the user downloads on demand. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="VOICEVOX TTS"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- CATEGORY_DEFAULT is mandatory: the framework queries engines with
+             MATCH_DEFAULT_ONLY, so a filter without it is never discovered. -->
+        <service
+            android:name=".presentation.tts.VoicevoxTtsService"
+            android:exported="true"
+            android:label="VOICEVOX TTS">
+            <intent-filter>
+                <action android:name="android.intent.action.TTS_SERVICE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.speech.tts"
+                android:resource="@xml/tts_engine" />
+        </service>
+
+        <!-- Both handshake Activities are exported because the framework starts them, and both
+             finish immediately without showing UI or touching the filesystem beyond a size
+             check. An arbitrary app can start them; the worst outcome is a wasted milliseconds. -->
+        <activity
+            android:name=".presentation.tts.CheckVoiceDataActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.CHECK_TTS_DATA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".presentation.tts.GetSampleTextActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.GET_SAMPLE_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".presentation.settings.view.SettingsActivity"
+            android:exported="true"
+            android:label="VOICEVOX TTS"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.CONFIGURE_ENGINE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <!-- Where the system's "install voice data" button lands when CHECK_TTS_DATA fails:
+                 the screen that downloads packs. Without a handler that button did nothing. -->
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.INSTALL_TTS_DATA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- The same screen with the adb hooks (the `auto` extra) enabled. They delete packs and
+             start downloads, so the system only lets callers holding DUMP start it: the adb
+             shell has it, a third-party app cannot be granted it. No intent filter, so it is
+             reached by explicit component name only:
+             adb shell am start -n app.voicevox.tts/.presentation.diagnostics.DiagnosticsActivity -e auto diag -->
+        <activity
+            android:name=".presentation.diagnostics.DiagnosticsActivity"
+            android:exported="true"
+            android:label="VOICEVOX TTS (diagnostics)"
+            android:permission="android.permission.DUMP"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+
+</manifest>

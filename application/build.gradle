@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+    // The fakes of the ports live in testFixtures so the app module's presenter tests reuse
+    // the same doubles instead of keeping a second copy.
+    id 'java-test-fixtures'
+}
+
+// Use cases and the ports they need. Plain Java: it sees the domain and nothing else.
+
+dependencies {
+    api project(':domain')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+tasks.named('test') { useJUnitPlatform() }

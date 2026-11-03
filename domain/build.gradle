@@ -1,0 +1,17 @@
+plugins { id 'java-library' }
+
+// The domain model: plain Java with no dependency at all. An android.* import here does not
+// compile, which is what lets every rule in this module be tested on a bare JVM.
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:deprecation'
+}
+
+tasks.named('test') { useJUnitPlatform() }

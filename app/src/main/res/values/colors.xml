@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background of the whole window; the settings screen paints the same colour by hand. -->
+    <color name="vv_bg">#F4F6FA</color>
+    <color name="vv_accent">#5B6CF9</color>
+</resources>

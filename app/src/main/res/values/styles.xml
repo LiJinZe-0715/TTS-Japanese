@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- No action bar: the screen draws its own header, and the platform bar only ever
+         added a purple strip above it. -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/vv_bg</item>
+        <item name="android:colorAccent">@color/vv_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/vv_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
